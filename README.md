@@ -5,12 +5,18 @@ A Spotify stats dashboard with real-time friend activity. Connect your Spotify a
 ## Screenshots
 
 ### Your Dashboard
-![Spoty Dashboard](Screenshot%202026-05-11%20at%208.33.47%20PM.png)
+![Spoty Dashboard]
+
+<img width="750px" height="750px" alt="User Dashboard" src="https://github.com/user-attachments/assets/465953e6-f20a-4ae4-8d33-85c82422f28b" />
+
 
 See your listening stats for the month: top 10 tracks, top artist, hours listened, top genre, and last played track — all pulled from your Spotify history.
 
 ### Friends Activity
-![Friends View](Screenshot%202026-05-11%20at%208.33.53%20PM.png)
+![Friends View]
+
+<img width="750px" height="750px" alt="Friend Dashboard" src="https://github.com/user-attachments/assets/3e540508-57e4-4e29-b417-f5e7066c3d79" />
+
 
 Add friends by their Spotify username and see what they're playing in real time, powered by Pusher WebSockets.
 
