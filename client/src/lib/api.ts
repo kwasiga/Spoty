@@ -49,6 +49,18 @@ export function unfollowFriend(id: string) {
   return req(`/friends/unfollow/${id}`, { method: "DELETE" })
 }
 
+export function updateMe(name: string) {
+  return req<{ user: { id: string; name: string; image: string | null } }>("/users/me", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name }),
+  })
+}
+
+export function deleteMe() {
+  return req("/users/me", { method: "DELETE" })
+}
+
 export function logout() {
   return req("/auth/logout", { method: "POST" })
 }

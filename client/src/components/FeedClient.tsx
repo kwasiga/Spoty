@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import Pusher from "pusher-js"
-import { getFriends, followFriend, broadcast } from "../lib/api"
+import { getFriends, followFriend, unfollowFriend, broadcast } from "../lib/api"
 
 interface Track {
   id: string
@@ -31,6 +31,7 @@ export default function FeedClient({ userId }: { userId: string }) {
   const [addInput, setAddInput] = useState("")
   const [addError, setAddError] = useState("")
   const [copied, setCopied] = useState(false)
+  const [showAdd, setShowAdd] = useState(false)
   const pusherRef = useRef<Pusher | null>(null)
 
   useEffect(() => {
@@ -61,11 +62,17 @@ export default function FeedClient({ userId }: { userId: string }) {
     try {
       await followFriend(id)
       setAddInput("")
+      setShowAdd(false)
       const updated = await getFriends()
       setFriends(updated)
     } catch (err: unknown) {
       setAddError((err as Error).message ?? "Something went wrong")
     }
+  }
+
+  async function removeFriend(id: string) {
+    await unfollowFriend(id)
+    setFriends((prev) => prev.filter((f) => f.id !== id))
   }
 
   function copyId() {
@@ -77,85 +84,105 @@ export default function FeedClient({ userId }: { userId: string }) {
   const feedEntries = Object.values(feed).filter((e) => e.is_playing)
 
   return (
-    <div className="flex flex-col gap-8">
-      <section>
-        <h2 className="text-xs text-zinc-500 uppercase tracking-widest mb-3">add friend</h2>
-        <div className="mb-3 flex items-center gap-2 rounded-lg bg-zinc-900 border border-zinc-800 px-3 py-2">
-          <span className="text-xs text-zinc-500 flex-shrink-0">Your ID</span>
-          <span className="flex-1 truncate font-mono text-xs text-zinc-300">{userId}</span>
-          <button onClick={copyId} className="text-xs text-[#1DB954] hover:text-[#1ed760] transition flex-shrink-0">
-            {copied ? "Copied!" : "Copy"}
-          </button>
-        </div>
-        <div className="flex gap-2">
-          <input
-            value={addInput}
-            onChange={(e) => { setAddInput(e.target.value); setAddError("") }}
-            placeholder="Paste a friend's user ID"
-            className="flex-1 rounded-lg bg-zinc-900 border border-zinc-700 px-3 py-2 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#1DB954]"
-          />
-          <button
-            onClick={addFriend}
-            className="rounded-lg bg-[#1DB954] px-4 py-2 text-sm font-semibold text-black hover:bg-[#1ed760] transition"
-          >
-            Add
-          </button>
-        </div>
-        {addError && <p className="mt-2 text-xs text-red-400">{addError}</p>}
-        {friends.length > 0 && (
-          <div className="mt-3 flex flex-wrap gap-2">
-            {friends.map((f) => (
-              <div key={f.id} className="flex items-center gap-1.5 rounded-full bg-zinc-900 border border-zinc-800 px-3 py-1 text-xs text-zinc-300">
-                {f.image && <img src={f.image} alt="" className="w-4 h-4 rounded-full" />}
-                {f.name}
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
-
-      <section>
-        <h2 className="text-xs text-zinc-500 uppercase tracking-widest mb-3">live feed</h2>
-        {feedEntries.length === 0 ? (
-          <p className="text-zinc-600 text-sm">nothing playing right now — add friends and check back soon.</p>
-        ) : (
-          <div className="flex flex-col gap-4">
-            {feedEntries.map((entry) => (
-              <NowPlayingCard key={entry.userId} entry={entry} />
-            ))}
-          </div>
-        )}
-      </section>
-    </div>
-  )
-}
-
-function NowPlayingCard({ entry }: { entry: NowPlayingEvent }) {
-  return (
-    <a
-      href={entry.track?.url ?? "#"}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="flex items-center gap-4 rounded-2xl bg-zinc-900 border border-zinc-800 p-4 hover:border-zinc-600 transition"
-    >
-      {entry.track?.album_art && (
-        <img src={entry.track.album_art} alt="" className="w-14 h-14 rounded-xl flex-shrink-0" />
-      )}
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2 mb-0.5">
-          {entry.userImage && (
-            <img src={entry.userImage} alt="" className="w-5 h-5 rounded-full" />
-          )}
-          <span className="text-xs text-zinc-400">{entry.userName}</span>
-          <span className="ml-auto flex items-center gap-1 text-[10px] text-[#1DB954] font-semibold">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#1DB954] animate-pulse" />
-            LIVE
-          </span>
-        </div>
-        <p className="font-semibold text-white truncate">{entry.track?.name}</p>
-        <p className="text-sm text-zinc-400 truncate">{entry.track?.artist}</p>
-        <p className="text-xs text-zinc-600 truncate">{entry.track?.album}</p>
+    <div className="flex flex-col gap-4 h-full">
+      {/* header row */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-xs text-zinc-400 uppercase tracking-widest font-semibold">Friends</h2>
+        <button
+          onClick={() => setShowAdd((v) => !v)}
+          className="text-[10px] text-[#1DB954] hover:text-[#1ed760] transition font-medium"
+        >
+          {showAdd ? "cancel" : "+ add"}
+        </button>
       </div>
-    </a>
+
+      {/* add friend panel */}
+      {showAdd && (
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-2 rounded-xl bg-black/30 border border-white/10 px-3 py-1.5">
+            <span className="text-[10px] text-zinc-500 flex-shrink-0">Your ID</span>
+            <span className="flex-1 truncate font-mono text-[10px] text-zinc-400">{userId}</span>
+            <button onClick={copyId} className="text-[10px] text-[#1DB954] hover:text-[#1ed760] transition flex-shrink-0">
+              {copied ? "Copied!" : "Copy"}
+            </button>
+          </div>
+          <div className="flex gap-2">
+            <input
+              value={addInput}
+              onChange={(e) => { setAddInput(e.target.value); setAddError("") }}
+              placeholder="Paste friend's user ID"
+              className="flex-1 rounded-xl bg-black/30 border border-white/10 px-3 py-1.5 text-xs text-white placeholder:text-zinc-600 focus:outline-none focus:border-[#1DB954]"
+            />
+            <button
+              onClick={addFriend}
+              className="rounded-xl bg-[#1DB954] px-3 py-1.5 text-xs font-semibold text-black hover:bg-[#1ed760] transition"
+            >
+              Add
+            </button>
+          </div>
+          {addError && <p className="text-[10px] text-red-400">{addError}</p>}
+        </div>
+      )}
+
+      {/* friends list */}
+      {friends.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {friends.map((f) => (
+            <div key={f.id} className="flex items-center gap-1.5 rounded-full bg-white/5 border border-white/10 pl-2 pr-1.5 py-1 text-[10px] text-zinc-300">
+              {f.image && <img src={f.image} alt="" className="w-3.5 h-3.5 rounded-full" />}
+              <span>{f.name}</span>
+              <button
+                onClick={() => removeFriend(f.id)}
+                className="ml-0.5 text-zinc-600 hover:text-red-400 transition leading-none"
+              >
+                ×
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* divider */}
+      {friends.length > 0 && <div className="border-t border-white/5" />}
+
+      {/* live feed */}
+      <div className="flex flex-col gap-2 flex-1 overflow-y-auto">
+        {feedEntries.length === 0 ? (
+          <p className="text-zinc-600 text-xs">
+            {friends.length === 0
+              ? "Add friends to see what they're listening to."
+              : "Nothing playing right now."}
+          </p>
+        ) : (
+          feedEntries.map((entry) => (
+            <a
+              key={entry.userId}
+              href={entry.track?.url ?? "#"}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 rounded-xl bg-black/30 border border-white/5 p-3 hover:border-white/15 transition"
+            >
+              {entry.track?.album_art && (
+                <img src={entry.track.album_art} alt="" className="w-10 h-10 rounded-lg flex-shrink-0" />
+              )}
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  {entry.userImage && (
+                    <img src={entry.userImage} alt="" className="w-4 h-4 rounded-full flex-shrink-0" />
+                  )}
+                  <span className="text-[10px] text-zinc-500 truncate">{entry.userName}</span>
+                  <span className="ml-auto flex items-center gap-1 text-[9px] text-[#1DB954] font-semibold flex-shrink-0">
+                    <span className="w-1 h-1 rounded-full bg-[#1DB954] animate-pulse" />
+                    LIVE
+                  </span>
+                </div>
+                <p className="text-xs font-semibold text-white truncate">{entry.track?.name}</p>
+                <p className="text-[10px] text-zinc-500 truncate">{entry.track?.artist}</p>
+              </div>
+            </a>
+          ))
+        )}
+      </div>
+    </div>
   )
 }

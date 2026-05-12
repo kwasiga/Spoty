@@ -7,6 +7,7 @@ import { Pool } from "pg"
 import { setupAuth } from "./routes/auth.js"
 import spotifyRouter from "./routes/spotify.js"
 import friendsRouter from "./routes/friends.js"
+import usersRouter from "./routes/users.js"
 
 const app = express()
 const PgSession = connectPgSimple(session)
@@ -31,6 +32,7 @@ const authRouter = setupAuth(express.Router())
 app.use("/api/auth", authRouter)
 app.use("/api/spotify", spotifyRouter)
 app.use("/api/friends", friendsRouter)
+app.use("/api/users", usersRouter)
 
 // proxy everything else to Vite dev server
 app.use(
