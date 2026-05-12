@@ -1,0 +1,36 @@
+{
+  "name": "spoty-server",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --env-file=../.env index.ts",
+    "start": "tsx --env-file=../.env index.ts",
+    "migrate": "tsx --env-file=../.env scripts/migrate.ts"
+  },
+  "dependencies": {
+    "connect-pg-simple": "^10.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.19.2",
+    "express-session": "^1.18.1",
+    "http-proxy-middleware": "^3.0.5",
+    "kysely": "^0.28.17",
+    "passport": "^0.7.0",
+    "passport-spotify": "^2.0.0",
+    "pg": "^8.20.0",
+    "pusher": "^5.3.3"
+  },
+  "devDependencies": {
+    "@types/connect-pg-simple": "^7.0.3",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/express-session": "^1.18.1",
+    "@types/node": "^20",
+    "@types/passport": "^1.0.16",
+    "@types/passport-spotify": "^1.0.0",
+    "@types/pg": "^8.20.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5"
+  }
+}
